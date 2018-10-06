@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <time.h>
 #include <signal.h>
 #include <pigpio.h>
 
@@ -13,8 +12,11 @@
 #define TICK_INTERVAL    1000.0/60
 #define FILE_NAME        "chip.bin"
 #define BUZZ_FRAMES      1
+#define pxSz             10
 
 SDL_Surface *window;
+SDL_Rect screenRect;
+SDL_Rect rects[SCR_HEIGHT][SCR_WIDTH];
 
 Uint32 now = 0;
 volatile bool quit = false;
@@ -23,7 +25,7 @@ void drawScreen(SDL_Surface *dest) {
     static uint8_t col;
     static SDL_Rect *currRect;
     
-    if (true) {
+    if (draw) {
         draw = false;
         
         SDL_FillRect(dest, &screenRect, SDL_MapRGB(dest->format, 255, 255, 255));
@@ -91,6 +93,19 @@ int main(int argc, char* args[]) {
     SDL_Flip(window);
 
     initialize();
+
+    screenRect.x = 0;
+    screenRect.y = 0;
+    screenRect.w = SCR_WIDTH * pxSz;
+    screenRect.h = SCR_HEIGHT * pxSz;
+    for (int i = 0; i < SCR_HEIGHT; i++)
+        for (int j = 0; j < SCR_WIDTH; j++) {
+            rects[i][j].x = j*pxSz;
+            rects[i][j].y = i*pxSz;
+            rects[i][j].w = pxSz;
+            rects[i][j].h = pxSz;
+        }
+
     loadGame(FILE_NAME);
 
     signal(SIGINT, closeSDL);

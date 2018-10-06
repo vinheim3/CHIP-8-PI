@@ -2,15 +2,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <SDL/SDL.h>
-
-#include "keypad.c"
-
-#define RAM 4096
-#define NULL ((void *)0)
+#define RAM              4096
+#define NULL             ((void *)0)
 #define SCR_HEIGHT       32
 #define SCR_WIDTH        64
-#define pxSz             10
 
 uint8_t     memory[RAM];
 uint16_t    PC;
@@ -18,16 +13,12 @@ uint16_t    PC;
 bool screen[SCR_HEIGHT][SCR_WIDTH];
 bool newScreen[SCR_HEIGHT][SCR_WIDTH];
 
-//remove
 uint8_t     delay;
 int8_t      sound = -1;
-SDL_Rect screenRect;
-SDL_Rect rects[SCR_HEIGHT][SCR_WIDTH];
 bool draw = false;
 bool key[16];
 bool paused = false;
 bool allowDraw;
-//end remove
 
 void initialize(void) {
     PC = 0x200;
@@ -53,19 +44,6 @@ void initialize(void) {
     };
     
     memmove(memory, font, 80);
-
-    screenRect.x = 0;
-    screenRect.y = 0;
-    screenRect.w = SCR_WIDTH * pxSz;
-    screenRect.h = SCR_HEIGHT * pxSz;
-    
-    for (int i = 0; i < SCR_HEIGHT; i++)
-        for (int j = 0; j < SCR_WIDTH; j++) {
-            rects[i][j].x = j*pxSz;
-            rects[i][j].y = i*pxSz;
-            rects[i][j].w = pxSz;
-            rects[i][j].h = pxSz;
-        }
 }
 
 void loadGame(char *fileName) {
