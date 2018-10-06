@@ -88,6 +88,8 @@ void mainloop() {
         buzz();
     }
 
+    set_key(key);
+
     while (SDL_PollEvent(&event)) {
         ///store key press state
         if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {   
@@ -99,8 +101,6 @@ void mainloop() {
             //    key[key_map[sym] - 1] = (event.type == SDL_KEYDOWN);
         }
     }
-
-    set_key(key);
 }
 
 int main(int argc, char* args[]) {

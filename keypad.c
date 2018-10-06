@@ -8,8 +8,8 @@ uint8_t Matrix[4][4] = {
     {0xE,0x0,0xF,0xD}
 };
 
-int Row[4] = {6,13,19,26};
-int Col[4] = {12,16,20,21};
+int Row[4] = {26,19,13,6};
+int Col[4] = {21,20,16,12};
 
 bool keypadInitialised = false;
 
