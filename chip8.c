@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
+#include <signal.h>
 #include <pigpio.h>
 
 #include <SDL/SDL.h>
@@ -16,26 +17,7 @@ SDL_Surface *window;
 SDL_Event event;
 
 Uint32 now = 0;
-bool quit = false;
-
-/*static const int key_map[SDLK_LAST] = {
-    [SDLK_x] = 1,
-    [SDLK_1] = 2,
-    [SDLK_2] = 3,
-    [SDLK_3] = 4,
-    [SDLK_q] = 5,
-    [SDLK_w] = 6,
-    [SDLK_e] = 7,
-    [SDLK_a] = 8,
-    [SDLK_s] = 9,
-    [SDLK_d] = 10,
-    [SDLK_z] = 11,
-    [SDLK_c] = 12,
-    [SDLK_4] = 13,
-    [SDLK_r] = 14,
-    [SDLK_f] = 15,
-    [SDLK_v] = 16
-};*/
+volatile bool quit = false;
 
 void drawScreen(SDL_Surface *dest) {
     static uint8_t col;
@@ -64,6 +46,7 @@ void closeSDL() {
     SDL_FreeSurface(window);
     SDL_Quit();
     gpioTerminate();
+    exit(-1);
     quit = true;
 }
 
@@ -97,8 +80,6 @@ void mainloop() {
 
             if (sym == SDLK_ESCAPE)
                 closeSDL();
-            //else if (key_map[sym])
-            //    key[key_map[sym] - 1] = (event.type == SDL_KEYDOWN);
         }
     }
 }
@@ -116,6 +97,9 @@ int main(int argc, char* args[]) {
 
     initialize();
     loadGame(FILE_NAME);
+
+    signal(SIGINT, closeSDL);
+    signal(SIGTERM, closeSDL);
 
     do {
         mainloop();

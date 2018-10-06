@@ -28,17 +28,12 @@ void init_keypad(void) {
 }
 
 void set_key(bool * key) {
-    if (!keypadInitialised) {
+    if (!keypadInitialised)
         init_keypad();
-    }
 
     for (int j = 0; j < 4; j++) {
         gpioWrite(Col[j], 0);
         for (int i = 0; i < 4; i++) {
-            /*if (gpioRead(Row[i]) == 0) {
-                while (gpioRead(Row[i]) == 0) {;}
-            }*/
-
             key[Matrix[i][j]] = (gpioRead(Row[i]) == 0);
         }
         gpioWrite(Col[j], 1);
