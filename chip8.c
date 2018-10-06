@@ -1,24 +1,14 @@
-#ifdef __EMSCRIPTEN__
-#include <string.h>
-#include <stdlib.h>
-#include <emscripten.h>
-#else
-#define EMSCRIPTEN_KEEPALIVE ;
-#endif
-
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <time.h>
 #include "SDL/SDL.h"
-#include "SDL/SDL_mixer.h"
 #define pxSz             10
 #define TICK_INTERVAL    1000.0/60
 #define SCR_HEIGHT       32
 #define SCR_WIDTH        64
 #define RAM              4096
 #define FILE_NAME        "chip.bin"
-#define WAV_FILE         "beep.wav"
 
 uint8_t     memory[RAM];
 uint8_t     delay;
@@ -36,13 +26,9 @@ bool paused = false;
 
 Uint16 i, j;
 
-Uint8 *audio_pos, *orig_audio_pos;
-Uint32 audio_len, orig_audio_len;
-
 SDL_Surface *window;
 SDL_Event event;
 uint8_t sym;
-SDL_Joystick *joy;
 bool released[0x10] = {true};
 
 static const int key_map[SDLK_LAST] = {
@@ -67,9 +53,6 @@ static const int key_map[SDLK_LAST] = {
 Uint32 now = 0;
 bool quit = false;
 bool allowDraw;
-Uint8 *wav_buffer;
-
-Mix_Chunk *beep;
 
 void initialize(void) {
     PC = 0x200;
@@ -108,13 +91,6 @@ void initialize(void) {
             rects[i][j].w = pxSz;
             rects[i][j].h = pxSz;
         }
-
-    Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 1024);
-    beep = Mix_LoadWAV("beep.wav");
-    if (beep == NULL) {
-        printf("%s\n", SDL_GetError());
-    }
-    sound = -1;
 }
 
 void loadGame(char *fileName) {
@@ -438,25 +414,9 @@ void drawScreen(SDL_Surface *dest) {
 }
 
 void closeSDL() {
-    Mix_FreeChunk(beep);
-    Mix_CloseAudio();
     SDL_FreeSurface(window);
     SDL_Quit();
-#ifdef __EMSCRIPTEN__
-    emscripten_cancel_main_loop();
-#else
     quit = true;
-#endif
-}
-
-void init_joypad() {
-    if (SDL_JoystickOpened(0) == true)
-        return;
-    
-    if (SDL_NumJoysticks() > 0) {
-        joy = SDL_JoystickOpen(0);
-        SDL_JoystickEventState(SDL_ENABLE);
-    }
 }
 
 void mainloop() {
@@ -479,11 +439,9 @@ void mainloop() {
 
     if (sound == 0) {
         sound = -1;
-        Mix_PlayChannel(-1, beep, 0);
+        printf("Beep!\n");
     }
 
-    init_joypad();
-    
     while (SDL_PollEvent(&event)) {
         ///store key press state
         if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {   
@@ -493,56 +451,12 @@ void mainloop() {
                 closeSDL();
             else if (key_map[sym])
                 key[key_map[sym] - 1] = (event.type == SDL_KEYDOWN);
-        } else
-#ifdef __EMSCRIPTEN__
-        if (event.type == SDL_JOYBUTTONDOWN || event.type == SDL_JOYBUTTONUP) {
-            Uint8 hat_val = event.jbutton.button;
-            Uint8 btn_dirs[4] = {12, 13, 14, 15};
-            int corr_btns[4] = {SDLK_w, SDLK_s, SDLK_a, SDLK_d};
-            for (int i = 0; i < 4; i++) {
-                if (hat_val == btn_dirs[i])
-                    key[key_map[corr_btns[i]] - 1] = event.type == SDL_JOYBUTTONDOWN;
-            }
         }
-#else
-        if (event.type == SDL_JOYHATMOTION) {
-            Uint8 hat_val = event.jhat.value;
-            Uint8 btn_dirs[4] = {SDL_HAT_UP, SDL_HAT_DOWN, SDL_HAT_LEFT, SDL_HAT_RIGHT};
-            int corr_btns[4] = {SDLK_w, SDLK_s, SDLK_a, SDLK_d};
-            for (int i = 0; i < 4; i++) {
-                key[key_map[corr_btns[i]] - 1] = (hat_val & btn_dirs[i]) != 0;
-            }
-        }
-#endif
     }
-}
-
-EMSCRIPTEN_KEEPALIVE
-void simulate_input(char input, bool on) {
-    uint8_t sym;
-    switch (input) {
-        case '1': sym = SDLK_1; break;
-        case '2': sym = SDLK_2; break;
-        case '3': sym = SDLK_3; break;
-        case '4': sym = SDLK_4; break;
-        case 'q': sym = SDLK_q; break;
-        case 'w': sym = SDLK_w; break;
-        case 'e': sym = SDLK_e; break;
-        case 'r': sym = SDLK_r; break;
-        case 'a': sym = SDLK_a; break;
-        case 's': sym = SDLK_s; break;
-        case 'd': sym = SDLK_d; break;
-        case 'f': sym = SDLK_f; break;
-        case 'z': sym = SDLK_z; break;
-        case 'x': sym = SDLK_x; break;
-        case 'c': sym = SDLK_c; break;
-        case 'v': sym = SDLK_v; break;
-    }
-    key[key_map[sym] - 1] = on;
 }
 
 int main(int argc, char* args[]) {
-    SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_JOYSTICK);
+    SDL_Init(SDL_INIT_VIDEO);
 
     window = SDL_SetVideoMode(SCR_WIDTH*pxSz, SCR_HEIGHT*pxSz, 8, SDL_SWSURFACE|SDL_DOUBLEBUF);
     SDL_Flip(window);
@@ -550,13 +464,9 @@ int main(int argc, char* args[]) {
     initialize();
     loadGame(FILE_NAME);
 
-#ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop(mainloop, 0, true);
-#else
     do {
         mainloop();
     } while (!quit);
-#endif
 
     return 0;
 }

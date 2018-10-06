@@ -1,2 +1,2 @@
 linux:
-	gcc chip8.c -o chip8 
+	gcc chip8.c -o chip8 -lSDL

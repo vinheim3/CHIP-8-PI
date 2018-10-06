@@ -5,7 +5,7 @@ data = myFile.read().split("\n")
 myFile.close()
 
 keywords = {}
-lines: List[str] = []
+lines = []
 currLine = 0x200
 
 #apply macros
@@ -22,7 +22,7 @@ for _i in data2:
 data2 = []
 for _i in data:
     #expand multiple single-line assigments
-    if "," in i:
+    if "," in _i:
         _i = _i.replace(",", "")
         _left, _right = _i.split("=")
         left = _left.split()
@@ -52,7 +52,7 @@ for _i in data:
 data = data2
 
 for _i in data:
-    i: str = _i.replace("\t", "")
+    i = _i.replace("\t", "")
 
     if len(i) == 0: continue
 
