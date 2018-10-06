@@ -13,7 +13,9 @@ int Col[4] = {21,20,16,12};
 
 bool keypadInitialised = false;
 
-void clean_keypad(void) {
+void cleanup_keypad(void) {
+    if (!keypadInitialised) return;
+
     for (int j = 0; j < 4; j++) {
         gpioWrite(Col[j], 0);
         gpioSetMode(Col[j], PI_INPUT);
