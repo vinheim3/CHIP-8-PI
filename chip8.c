@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <sys/time.h>
 #include <signal.h>
 #include <pigpio.h>
 
@@ -14,16 +15,19 @@
 #define BUZZ_FRAMES      1
 #define pxSz             10
 
+#ifdef _SDL_H
 SDL_Surface *window;
 SDL_Rect screenRect;
 SDL_Rect rects[SCR_HEIGHT][SCR_WIDTH];
+#endif
 
-Uint32 now = 0;
 volatile bool quit = false;
 
-void drawScreen(SDL_Surface *dest) {
+void drawScreen(void) {
+#ifdef _SDL_H
     static uint8_t col;
     static SDL_Rect *currRect;
+    SDL_Surface *dest = window;
     
     if (draw) {
         draw = false;
@@ -40,13 +44,16 @@ void drawScreen(SDL_Surface *dest) {
             }
         SDL_UpdateRect(dest, 0, 0, 0, 0);
     }
+#endif
     
     memcpy(screen, newScreen, SCR_HEIGHT*SCR_WIDTH);
 }
 
 void closeSDL() {
+#ifdef _SDL_H
     SDL_FreeSurface(window);
     SDL_Quit();
+#endif
     cleanup_keypad();
     cleanup_buzzer();
     gpioTerminate();
@@ -54,15 +61,27 @@ void closeSDL() {
     quit = true;
 }
 
+float timedifference_msec(struct timeval t0, struct timeval t1) {
+    return (t1.tv_sec - t0.tv_sec) * 1000.0f + (t1.tv_usec - t0.tv_usec) / 1000.0f;
+}
+
 void mainloop() {
     ///tick down 60Hz
-    now = SDL_GetTicks();
     allowDraw = true;
+
+#ifdef _SDL_H
+    Uint32 now = SDL_GetTicks();
     while (SDL_GetTicks() - now <= TICK_INTERVAL-1) {
+#else
+    struct timeval now, looped;
+    gettimeofday(&now); gettimeofday(&looped);
+    while (timedifference_msec(now, looped) <= TICK_INTERVAL-1) {
+        gettimeofday(&looped);
+#endif
         emulatecycle();
         allowDraw = false;
     }
-    drawScreen(window);
+    drawScreen();
 
     if (!paused && delay > 0)
         delay--;
@@ -89,13 +108,10 @@ int main(int argc, char* args[]) {
         return 1;
     }
 
+#ifdef _SDL_H
     SDL_Init(SDL_INIT_VIDEO);
-
     window = SDL_SetVideoMode(SCR_WIDTH*pxSz, SCR_HEIGHT*pxSz, 8, SDL_SWSURFACE|SDL_DOUBLEBUF);
     SDL_Flip(window);
-
-    initialize();
-
     screenRect.x = 0;
     screenRect.y = 0;
     screenRect.w = SCR_WIDTH * pxSz;
@@ -107,7 +123,9 @@ int main(int argc, char* args[]) {
             rects[i][j].w = pxSz;
             rects[i][j].h = pxSz;
         }
+#endif
 
+    initialize();
     loadGame(FILE_NAME);
 
     signal(SIGINT, closeSDL);
