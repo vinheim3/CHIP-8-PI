@@ -7,6 +7,7 @@
 
 #include <SDL/SDL.h>
 
+#include "keypad.c"
 #include "buzzer.c"
 #include "emulator.c"
 
@@ -69,17 +70,12 @@ void mainloop() {
     ///tick down 60Hz
     allowDraw = true;
 
-#ifdef _SDL_H
-    Uint32 now = SDL_GetTicks();
-    while (SDL_GetTicks() - now <= TICK_INTERVAL-1) {
-#else
     struct timeval now, looped;
-    gettimeofday(&now); gettimeofday(&looped);
+    gettimeofday(&now, 0); gettimeofday(&looped, 0);
     while (timedifference_msec(now, looped) <= TICK_INTERVAL-1) {
-        gettimeofday(&looped);
-#endif
         emulatecycle();
         allowDraw = false;
+        gettimeofday(&looped, 0);
     }
     drawScreen();
 
