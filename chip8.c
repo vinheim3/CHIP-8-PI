@@ -14,9 +14,9 @@
 #define TICK_INTERVAL    1000.0/60
 #define FILE_NAME        "chip.bin"
 #define BUZZ_FRAMES      1
-#define pxSz             10
 
 #ifdef _SDL_H
+#define pxSz             10
 SDL_Surface *window;
 SDL_Rect screenRect;
 SDL_Rect rects[SCR_HEIGHT][SCR_WIDTH];
@@ -50,7 +50,7 @@ void drawScreen(void) {
     memcpy(screen, newScreen, SCR_HEIGHT*SCR_WIDTH);
 }
 
-void closeSDL() {
+void closeSDL(int _) {
 #ifdef _SDL_H
     SDL_FreeSurface(window);
     SDL_Quit();

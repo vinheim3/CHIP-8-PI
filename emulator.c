@@ -3,7 +3,6 @@
 #include <stdbool.h>
 
 #define RAM              4096
-#define NULL             ((void *)0)
 #define SCR_HEIGHT       32
 #define SCR_WIDTH        64
 
@@ -23,7 +22,7 @@ bool allowDraw;
 void initialize(void) {
     PC = 0x200;
     srand(time(NULL));
-    
+
     uint8_t font[80] = {
         0xF0,0x90,0x90,0x90,0xF0, ///0
         0x20,0x60,0x20,0x20,0x70, ///1
@@ -46,7 +45,7 @@ void initialize(void) {
     memmove(memory, font, 80);
 }
 
-void loadGame(char *fileName) {
+void loadGame(const char *fileName) {
     FILE *file;
     uint16_t fileLen;
     
