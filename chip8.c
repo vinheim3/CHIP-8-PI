@@ -12,9 +12,9 @@
 
 #define TICK_INTERVAL    1000.0/60
 #define FILE_NAME        "chip.bin"
+#define BUZZ_FRAMES      1
 
 SDL_Surface *window;
-SDL_Event event;
 
 Uint32 now = 0;
 volatile bool quit = false;
@@ -66,22 +66,17 @@ void mainloop() {
     if (sound > 0)
         sound--;
 
+    if (sound == -1) {
+        sound = -1 - BUZZ_FRAMES;
+        unbuzz();
+    }
+
     if (sound == 0) {
         sound = -1;
         buzz();
     }
 
     set_key(key);
-
-    while (SDL_PollEvent(&event)) {
-        ///store key press state
-        if (event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) {   
-            uint8_t sym = event.key.keysym.sym;
-
-            if (sym == SDLK_ESCAPE)
-                closeSDL();
-        }
-    }
 }
 
 int main(int argc, char* args[]) {

@@ -13,6 +13,16 @@ int Col[4] = {21,20,16,12};
 
 bool keypadInitialised = false;
 
+void clean_keypad(void) {
+    for (int j = 0; j < 4; j++) {
+        gpioWrite(Col[j], 0);
+        gpioSetMode(Col[j], PI_INPUT);
+    }
+
+    for (int i = 0; i < 4; i++)
+        gpioSetPullUpDown(Row[i], PI_PUD_OFF);
+}
+
 void init_keypad(void) {
     for (int j = 0; j < 4; j++) {
         gpioSetMode(Col[j], PI_OUTPUT);
