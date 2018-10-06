@@ -107,7 +107,6 @@ int main(int argc, char* args[]) {
 #ifdef _SDL_H
     SDL_Init(SDL_INIT_VIDEO);
     window = SDL_SetVideoMode(SCR_WIDTH*pxSz, SCR_HEIGHT*pxSz, 8, SDL_SWSURFACE|SDL_DOUBLEBUF);
-    SDL_Flip(window);
     screenRect.x = 0;
     screenRect.y = 0;
     screenRect.w = SCR_WIDTH * pxSz;
