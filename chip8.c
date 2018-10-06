@@ -47,6 +47,8 @@ void drawScreen(SDL_Surface *dest) {
 void closeSDL() {
     SDL_FreeSurface(window);
     SDL_Quit();
+    cleanup_keypad();
+    cleanup_buzzer();
     gpioTerminate();
     exit(-1);
     quit = true;
