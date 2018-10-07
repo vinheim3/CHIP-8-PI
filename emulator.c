@@ -10,7 +10,6 @@ uint8_t     memory[RAM];
 uint16_t    PC;
 
 bool screen[SCR_HEIGHT][SCR_WIDTH];
-bool newScreen[SCR_HEIGHT][SCR_WIDTH];
 
 uint8_t     delay;
 int8_t      sound = -1;
@@ -107,7 +106,7 @@ void emulatecycle(void) {
                     if (!allowDraw) break;
                     for (int i = 0; i < SCR_HEIGHT; i++)
                         for (int j = 0; j < SCR_WIDTH; j++)
-                            newScreen[i][j] = false;
+                            screen[i][j] = false;
                     draw = true;
                     PC += 2;
                     break;
@@ -248,7 +247,7 @@ void emulatecycle(void) {
                         uint8_t screenXI = (V[x] + j) % SCR_WIDTH;
                         if (screen[screenYI][screenXI] == 1)
                             V[0xF] = 1;
-                        newScreen[screenYI][screenXI] = screen[screenYI][screenXI]^1;
+                        screen[screenYI][screenXI] ^= 1;
                     }
                 }
             }
