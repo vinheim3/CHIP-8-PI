@@ -24,9 +24,10 @@ void unbuzz(void) {
 }
 
 void cleanup_buzzer(void) {
-    if (buzzerInitialised) {
-        unbuzz();
-        gpioSetMode(BUZZER_GPIO, PI_INPUT);
-    }
+    if (!buzzerInitialised) return;
+
+    unbuzz();
+    gpioSetMode(BUZZER_GPIO, PI_INPUT);
+
     buzzerInitialised = false;
 }

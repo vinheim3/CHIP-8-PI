@@ -23,6 +23,8 @@ void cleanup_keypad(void) {
 
     for (int i = 0; i < 4; i++)
         gpioSetPullUpDown(Row[i], PI_PUD_OFF);
+
+    keypadInitialised = false;
 }
 
 void init_keypad(void) {
