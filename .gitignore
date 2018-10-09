@@ -48,6 +48,7 @@ Temporary Items
 
 # Built files
 chip8
+chip8.o
 chip.bin
 .mypy_cache/
 

@@ -67,7 +67,7 @@ void mainloop() {
     set_key(key);
 }
 
-int main(int argc, char* args[]) {
+int main(int argc, char **argv) {
     if (gpioInitialise() < 0) {
         fprintf(stderr, "pigpio initialisation failed\n");
         return 1;
@@ -76,7 +76,7 @@ int main(int argc, char* args[]) {
     initialize();
     init_buzzer();
     init_keypad();
-    init_led_matrix();
+    init_led_matrix(argc, argv);
     loadGame(FILE_NAME);
 
     signal(SIGINT, close_all);

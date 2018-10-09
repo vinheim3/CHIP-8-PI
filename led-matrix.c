@@ -3,13 +3,22 @@
 #include "led-matrix-c.h"
 
 struct RGBLedMatrix *ledMatrix;
+struct RGBLedMatrixOptions ledMatrixOptions;
 struct LedCanvas *canvas;
 
 bool ledMatrixInitialised = false;
 
-void drawScreen(bool **screen, int cols, int rows) {
-    if (!ledMatrixInitialised)
-        init_led_matrix();
+void init_led_matrix(int argc, char **argv) {
+    ledMatrixOptions.rows = 32;
+    ledMatrixOptions.cols = 64;
+    ledMatrix = led_matrix_create_from_options(&ledMatrixOptions, &argc, &argv);
+    canvas = led_matrix_create_offscreen_canvas(ledMatrix);
+    ledMatrixInitialised = true;
+}
+
+void drawScreen(bool screen[][64], int cols, int rows) {
+    //if (!ledMatrixInitialised)
+    //    init_led_matrix();
 
     led_canvas_clear(canvas);
 
@@ -25,10 +34,4 @@ void cleanup_led_matrix(void) {
     if (!ledMatrixInitialised) return;
     led_matrix_delete(ledMatrix);
     ledMatrixInitialised = false;
-}
-
-void init_led_matrix(void) {
-    ledMatrix = led_matrix_create(32, 1, 1);
-    canvas = led_matrix_create_offscreen_canvas(ledMatrix);
-    ledMatrixInitialised = true;
 }

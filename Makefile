@@ -19,5 +19,8 @@ chip8.o : chip8.c
 chip8: chip8.o $(RGB_LIBRARY)
 	$(CC) $< -o $@ $(LDFLAGS) $(PIGPIO_FLAGS) -lstdc++
 
+clean:
+	rm chip8.o chip8
+
 FORCE:
 .PHONY: FORCE

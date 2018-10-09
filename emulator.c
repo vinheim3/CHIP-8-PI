@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define RAM              4096
 #define SCR_HEIGHT       32
@@ -86,7 +88,7 @@ void emulatecycle(void) {
     
     static uint8_t x, y, kk, r;
     static uint16_t nnn;
-    static uint8_t keyPressed;
+    static int8_t keyPressed;
     
     if (PC >= RAM) {
         printf("End of RAM reached");
