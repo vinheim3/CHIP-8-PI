@@ -18,7 +18,6 @@ int8_t      sound = -1;
 bool draw = false;
 bool key[16];
 bool paused = false;
-bool allowDraw;
 
 void initialize(void) {
     PC = 0x200;
@@ -46,14 +45,14 @@ void initialize(void) {
     memmove(memory, font, 80);
 }
 
-void loadGame(const char *fileName) {
+bool loadGame(const char *fileName) {
     FILE *file;
     uint16_t fileLen;
     
     file = fopen(fileName, "rb");
     if (!file) {
         printf("Unable to open binary file: %s", fileName);
-        exit(-1);
+        return false;
     }
     
     fseek(file, 0, SEEK_END);
@@ -65,7 +64,7 @@ void loadGame(const char *fileName) {
     if (!buffer) {
         printf("Memory error!");
         fclose(file);
-        exit(-1);
+        return false;
     }
     
     fread(buffer, fileLen, 1, file);
@@ -73,16 +72,17 @@ void loadGame(const char *fileName) {
     
     if (fileLen + PC > RAM) {
         printf("File too big. Size is: %d", fileLen + PC);
-        exit(-1);
+        return false;
     }
     
     for (int i = 0; i < fileLen; i++)
         memory[i + PC] = buffer[i];
     
     free(buffer);
+    return true;
 }
 
-void emulatecycle(void) {
+bool emulatecycle(void) {
     static uint8_t V[16], SP;
     static uint16_t opcode, I, stack[16];
     
@@ -92,7 +92,7 @@ void emulatecycle(void) {
     
     if (PC >= RAM) {
         printf("End of RAM reached");
-        exit(-1);
+        return false;
     }
     
     opcode = memory[PC] << 8 | memory[PC+1];
@@ -105,7 +105,6 @@ void emulatecycle(void) {
         case 0x0000:
             switch (kk) {
                 case 0x00E0: ///clear the display
-                    if (!allowDraw) break;
                     for (int i = 0; i < SCR_HEIGHT; i++)
                         for (int j = 0; j < SCR_WIDTH; j++)
                             screen[i][j] = false;
@@ -118,7 +117,7 @@ void emulatecycle(void) {
                     break;
                 default: ///jump to machine code routine at nnn - old machines only
                     printf("Accessing old machine opcode.\n");
-                    exit(-1);
+                    return false;
             }
             break;
         case 0x1000: ///jump to location nnn
@@ -150,7 +149,7 @@ void emulatecycle(void) {
             }
             else {
                 printf("Invalid opcode 0x5000.\n");
-                exit(-1);
+                return false;
             }
             break;
         case 0x6000: ///sets Vx to kk
@@ -216,7 +215,7 @@ void emulatecycle(void) {
                     break;
                 default:
                     printf("Invalid opcode 0x8000.\n");
-                    exit(-1);
+                    return false;
             }
             break;
         case 0x9000: ///skip next instruction if Vx is not Vy
@@ -238,7 +237,6 @@ void emulatecycle(void) {
             PC += 2;
             break;
         case 0xD000: ///draws sprites at I at Vx,Vy with N lines drawn
-            if (!allowDraw) break;
             V[0xF] = 0;
             uint16_t pixel;
             for (int i = 0; i < (opcode & 0x000F); i++) {
@@ -276,7 +274,7 @@ void emulatecycle(void) {
                     break;
                 default:
                     printf("Invalid opcode 0xE000.\n");
-                    exit(-1);
+                    return false;
             }
             break;
         case 0xF000:
@@ -312,7 +310,7 @@ void emulatecycle(void) {
                 case 0x001E: ///adds Vx to I
                     I += V[x];
                     if (I > 0xFFF)
-                        exit(-1);
+                        return false;
                     PC += 2;
                     break;
                 case 0x0029: ///sets I to the location of font char in Vx
@@ -337,8 +335,9 @@ void emulatecycle(void) {
                     break;
                 default:
                     printf("Invalid opcode 0xF000.\n");
-                    exit(-1);
+                    return false;
             }
             break;
     }
+    return true;
 }

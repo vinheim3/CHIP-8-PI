@@ -14,15 +14,12 @@
 #define FILE_NAME        "chip.bin"
 #define BUZZ_FRAMES      1
 
-volatile bool quit = false;
-
 void close_all(int _) {
     cleanup_buzzer();
     cleanup_keypad();
     cleanup_led_matrix();
     gpioTerminate();
     exit(-1);
-    quit = true;
 }
 
 float timedifference_msec(struct timeval t0, struct timeval t1) {
@@ -31,20 +28,21 @@ float timedifference_msec(struct timeval t0, struct timeval t1) {
 
 void mainloop() {
     ///tick down 60Hz
-    allowDraw = true;
+    struct timeval start, now;
+    bool successful_cycle;
+    gettimeofday(&start, 0);
 
-    struct timeval now, looped;
-    gettimeofday(&now, 0); gettimeofday(&looped, 0);
-    while (timedifference_msec(now, looped) <= TICK_INTERVAL-1) {
-        emulatecycle();
-        allowDraw = false;
-        gettimeofday(&looped, 0);
+    while (!draw) {
+        successful_cycle = emulatecycle();
+        if (!successful_cycle) close_all(0);
     }
 
-    if (draw) {
-        draw = false;
-        drawScreen(screen, SCR_WIDTH, SCR_HEIGHT);
-    }
+    draw = false;
+
+    gettimeofday(&now, 0);
+    time_sleep((TICK_INTERVAL - timedifference_msec(start, now)) / 1000);
+
+    drawScreen(screen, SCR_WIDTH, SCR_HEIGHT);
 
     if (!paused && delay > 0)
         delay--;
@@ -77,14 +75,12 @@ int main(int argc, char **argv) {
     init_buzzer();
     init_keypad();
     init_led_matrix(argc, argv);
-    loadGame(FILE_NAME);
+    if (!loadGame(FILE_NAME)) close_all(0);
 
     signal(SIGINT, close_all);
     signal(SIGTERM, close_all);
 
-    do {
-        mainloop();
-    } while (!quit);
+    for (;;) mainloop();
 
     return 0;
 }
